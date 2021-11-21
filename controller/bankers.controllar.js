@@ -40,9 +40,12 @@ const AddBanker = (req, res) => {
 const AddCashToBanker=(req,res)=>{
     const{bankerId}=req.params
     const{cash}=req.body
-    Bankers.findById(bankerId,(err,banker)=>{
-        if(err) return res.status(404).send(err)
-        if(validator.isNumeric(cash)) {
+    if(typeof cash!=='number'){
+        return res.status(404).send('cash must be a number')
+    }else {
+        Bankers.findById(bankerId, (err, banker) => {
+            console.log(cash)
+            if (err) return res.status(404).send(err)
             Bankers.findByIdAndUpdate(bankerId, {cash: parseInt(banker.cash) + parseInt(cash)}, {
                 new: true,
                 runValidators: true
@@ -50,36 +53,37 @@ const AddCashToBanker=(req,res)=>{
                 if (err) return res.status(404).json('Banker Not Found')
                 return res.status(200).json({'updated': data})
             })
-        }else{
-            return res.status(404).send('The updated cash must be a number')
-        }
-    })
 
+        })
+    }
 }
 
 
 const SetCreditToBanker=(req,res)=>{
     const{bankerId}=req.params
     const{credit}=req.body
-        if(validator.isNumeric(credit)) {
+    if(typeof credit!=='number'){
+        return res.status(404).send('credit must be a number')
+    }else {
             Bankers.findByIdAndUpdate(bankerId, {credit: parseInt(credit)}, {
                 new: true,
                 runValidators: true
             }, (err, data) => {
                 if (err) return res.status(404).json(err.message)
                 return res.status(200).json({'updated': data})
-            })
-        }else{
-            return res.status(404).send('The updated credit must be a positive number or 0')
-        }
+            })}
+
 }
 const WithdrawMoney=(req,res)=>{
     const{bankerId}=req.params
     const{cash}=req.body
-    Bankers.findById(bankerId,(err,banker)=>{
-        if(err) return res.status(404).send(err)
-        if(validator.isNumeric(cash)) {
-            if(cash<=parseInt(banker.cash)+parseInt(banker.credit)) {
+    if(typeof cash!=='number'){
+        return res.status(404).send('cash must be a number')
+    }else {
+        Bankers.findById(bankerId, (err, banker) => {
+            if (err) return res.status(404).send(err)
+            console.log(parseInt(cash))
+            if (parseInt(cash) <= parseInt(banker.cash) + parseInt(banker.credit)) {
                 Bankers.findByIdAndUpdate(bankerId, {cash: parseInt(banker.cash) - parseInt(cash)}, {
                     new: true,
                     runValidators: true
@@ -87,13 +91,12 @@ const WithdrawMoney=(req,res)=>{
                     if (err) return res.status(404).json('Banker Not Found')
                     return res.status(200).json({'updated': data})
                 })
-            }else{
-                return res.status(404).send(`your max withdraw money should be less or equal than${parseInt(banker.cash)+parseInt(banker.credit)}`)
+            } else {
+                return res.status(404).send(`your max withdraw money should be less or equal than${parseInt(banker.cash) + parseInt(banker.credit)}`)
             }
-        }else{
-            return res.status(404).send('The updated cash must be a number')
-        }
-    })
+
+        })
+    }
 
 }
 
