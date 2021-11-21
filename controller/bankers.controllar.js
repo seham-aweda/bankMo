@@ -103,31 +103,35 @@ const WithdrawMoney=(req,res)=>{
 const TransferMoney=(req,res)=>{
     // const{from,to}=req,params
     const{cash,from,to}=req.body
-    if(from!==to){
-    Bankers.findById(from,(err,user1)=>{
-        if(err) return res.status(404).json(err)
-        if(cash<=parseInt(user1.cash) + parseInt(user1.credit)) {
-            Bankers.findByIdAndUpdate(from, {cash: user1.cash - parseInt(cash)}, {
-                new: true,
-                runValidators: true
-            }, (err, user1Updated) => {
-                if (err) return res.status(404).json(err)
-                Bankers.findById(to, (err, user2) => {
+    if(from!==to) {
+        if(typeof cash!=='number'){
+            return res.status(404).send('cash must be a number')
+        }else {
+        Bankers.findById(from, (err, user1) => {
+            if (err) return res.status(404).json(err)
+            if (parseInt(cash) <= parseInt(user1.cash) + parseInt(user1.credit)) {
+                Bankers.findByIdAndUpdate(from, {cash: user1.cash - parseInt(cash)}, {
+                    new: true,
+                    runValidators: true
+                }, (err, user1Updated) => {
                     if (err) return res.status(404).json(err)
-                    Bankers.findByIdAndUpdate(to, {cash: user2.cash + parseInt(cash)}, {
-                        new: true,
-                        runValidators: true
-                    }, (err, user2Updated) => {
+                    Bankers.findById(to, (err, user2) => {
                         if (err) return res.status(404).json(err)
-                        if (user2Updated) res.status(200).json({
-                            'user1Updated': user1Updated,
-                            'user2Updated': user2Updated
+                        Bankers.findByIdAndUpdate(to, {cash: user2.cash + parseInt(cash)}, {
+                            new: true,
+                            runValidators: true
+                        }, (err, user2Updated) => {
+                            if (err) return res.status(404).json(err)
+                            if (user2Updated) res.status(200).json({
+                                'user1Updated': user1Updated,
+                                'user2Updated': user2Updated
+                            })
                         })
                     })
                 })
-            })
-        }
-    })
+            }
+        })
+    }
     }else{
         return res.status(404).json("users ID must be different")
     }
